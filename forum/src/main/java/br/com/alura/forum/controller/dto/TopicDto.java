@@ -1,10 +1,10 @@
 package br.com.alura.forum.controller.dto;
 
 import br.com.alura.forum.models.Topic;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TopicDto {
     private Long id;
@@ -19,8 +19,8 @@ public class TopicDto {
         this.creationDate = topic.getDataCriacao();
     }
 
-    public static List<TopicDto> converter(List<Topic> topics){
-        return topics.stream().map(TopicDto::new).collect(Collectors.toList());
+    public static Page<TopicDto> converter(Page<Topic> topics){
+        return topics.map(TopicDto::new);
     }
 
     public Long getId() {

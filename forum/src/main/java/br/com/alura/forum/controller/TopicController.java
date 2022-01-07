@@ -8,6 +8,10 @@ import br.com.alura.forum.models.Topic;
 import br.com.alura.forum.repository.CourseReposotiry;
 import br.com.alura.forum.repository.TopicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,8 +33,10 @@ public class TopicController {
     private CourseReposotiry courseReposotiry;
 
     @GetMapping
-    public List<TopicDto> list(String courseName) {
-        List<Topic> topics = (courseName == null) ? topicRepository.findAll() : topicRepository.findByCursoName(courseName);
+    public Page<TopicDto> list(@RequestParam(required = false) String courseName, Pageable pageable) {
+
+        Page<Topic> topics = (courseName == null) ? topicRepository.findAll(pageable) : topicRepository.findByCursoName(courseName, pageable);
+
         return TopicDto.converter(topics);
     }
 
@@ -73,7 +79,7 @@ public class TopicController {
             topicRepository.deleteById(id);
             return ResponseEntity.ok().build();
         }
-        
+
         return ResponseEntity.notFound().build();
     }
 
