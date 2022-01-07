@@ -8,10 +8,12 @@ import br.com.alura.forum.models.Topic;
 import br.com.alura.forum.repository.CourseReposotiry;
 import br.com.alura.forum.repository.TopicRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -19,7 +21,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -33,7 +34,8 @@ public class TopicController {
     private CourseReposotiry courseReposotiry;
 
     @GetMapping
-    public Page<TopicDto> list(@RequestParam(required = false) String courseName, Pageable pageable) {
+    @Cacheable(value = "topicList")
+    public Page<TopicDto> list(@RequestParam(required = false) String courseName,@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<Topic> topics = (courseName == null) ? topicRepository.findAll(pageable) : topicRepository.findByCursoName(courseName, pageable);
 
@@ -49,6 +51,7 @@ public class TopicController {
 
     @PostMapping
     @Transactional
+    @CacheEvict(value = "topicList", allEntries = true)
     public ResponseEntity<TopicDto> register(@RequestBody @Valid TopicForm form, UriComponentsBuilder uriComponentsBuilder) {
         Topic topic = form.converter(courseReposotiry);
         topicRepository.save(topic);
@@ -60,6 +63,7 @@ public class TopicController {
 
     @PutMapping("/{id}")
     @Transactional
+    @CacheEvict(value = "topicList", allEntries = true)
     public ResponseEntity<TopicDto> update(@PathVariable Long id, @RequestBody @Valid TopicUpdateForm form) {
         Optional<Topic> optionalTopic = topicRepository.findById(id);
 
@@ -72,6 +76,7 @@ public class TopicController {
 
     @DeleteMapping("/{id}")
     @Transactional
+    @CacheEvict(value = "topicList", allEntries = true)
     public ResponseEntity delete(@PathVariable Long id) {
         Optional<Topic> topic = topicRepository.findById(id);
 
